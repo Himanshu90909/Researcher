@@ -50,17 +50,17 @@ class CrossModalAttention:
         V = key_feats
         
         # Multi-head attention
-        batch_size, seq_len, _ = Q.shape
-        Q_h = Q.reshape(batch_size, seq_len, self.n_heads, self.d_k).transpose(0, 2, 1, 3)
-        K_h = K.reshape(batch_size, seq_len, self.n_heads, self.d_k).transpose(0, 2, 1, 3)
-        V_h = V.reshape(batch_size, seq_len, self.n_heads, self.d_k).transpose(0, 2, 1, 3)
-        
+        batch_size, q_len, _ = Q.shape
+        k_len = K.shape[1]
+        Q_h = Q.reshape(batch_size, q_len, self.n_heads, self.d_k).transpose(0, 2, 1, 3)
+        K_h = K.reshape(batch_size, k_len, self.n_heads, self.d_k).transpose(0, 2, 1, 3)
+        V_h = V.reshape(batch_size, k_len, self.n_heads, self.d_k).transpose(0, 2, 1, 3)
         scores = (Q_h @ K_h.transpose(0, 1, 3, 2)) / np.sqrt(self.d_k)
         attn_weights = np.exp(scores - np.max(scores, axis=-1, keepdims=True))
         attn_weights = attn_weights / (np.sum(attn_weights, axis=-1, keepdims=True) + 1e-8)
         
         output = attn_weights @ V_h
-        output = output.transpose(0, 2, 1, 3).reshape(batch_size, seq_len, self.dim)
+        output = output.transpose(0, 2, 1, 3).reshape(batch_size, q_len, self.dim)
         
         return output, attn_weights.mean(axis=1)
 
@@ -156,14 +156,20 @@ class MultimodalFusion:
             results['audio_to_visual'] = a2v
             results['audio_to_text'] = a2t
         
-        # Combined representation
-        fused = (v2t + t2v) / 2
+        # Combined representation (mean pool each to (batch, dim) then average)
+        v2t_pooled = v2t.mean(axis=1)  # (batch, dim)
+        t2v_pooled = t2v.mean(axis=1)  # (batch, dim)
+        fused_pooled = (v2t_pooled + t2v_pooled) / 2
         if audio is not None:
-            fused = (fused + results['audio_to_visual'] + results['audio_to_text']) / 3
+            a2v_pooled = results['audio_to_visual'].mean(axis=1)
+            a2t_pooled = results['audio_to_text'].mean(axis=1)
+            fused_pooled = (fused_pooled + a2v_pooled + a2t_pooled) / 3
+        # Broadcast back to visual seq length for output
+        fused = np.broadcast_to(fused_pooled[:, None, :], v2t.shape).copy()
         
         results['fused'] = fused
         results['alignment_score'] = self.contrastive.compute_alignment_score(
-            visual.mean(axis=1), text.mean(axis=1)
+            visual.mean(axis=1)[0], text.mean(axis=1)[0]
         )
         
         return results
