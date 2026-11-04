@@ -205,7 +205,7 @@ def certified_sparse_attention(q, K, V, block_size=16, eps=0.05, ...):
   "retained": [0, 3, 5, ...], "retained_digest": "9f2c…",
   "q_digest": "4b71…", "k_digest": "c0ae…", "v_digest": "1d83…",
   "feasible": true, "fallback": false, "measured_error": 0.0006,
-  "version": "casa-1.0", "created_at": "2026-12-04T…Z"
+  "version": "casa-1.0", "created_at": "2026-11-04T09:12:41Z"
 }
 ```
 
