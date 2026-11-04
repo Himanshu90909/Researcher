@@ -109,7 +109,44 @@ We implement automated evaluation using LLM-as-a-Judge across 5 dimensions:
 - **InstructGPT**: Ouyang et al. (2022) - "Training language models to follow instructions"
 - **ReAct**: Yao et al. (2022) - "ReAct: Synergizing Reasoning and Acting"
 
-## 6. Conclusion
+## 6. Original Contribution: Proof-Carrying Sparse Attention (CASA)
+
+Sections 1-5 reproduce published methods. Section 6 is the framework's own result,
+implemented in `src/research/casa` and documented in full in `docs/CASA.md`.
+
+**Claim.** For renormalized pruning of a single attention head, the deviation from
+the exact output is boundable *deterministically* -- for every query, key and value
+set, with no distributional assumption -- and that bound can be computed from the
+retained scores plus one scalar per dropped block:
+
+```
+‖o_S − o‖₂  ≤  τ̄ · (D_S + D_all),      τ̄ = min(1, exp(Σ_{dropped blocks}(log n_g + u_g) − m_S))
+```
+
+where `τ` is the dropped softmax mass, `D_S` the retained value radius and `D_all`
+the value radius over the sequence. The theorem is tight to a factor of two, and that
+factor is attained.
+
+**Deliverable.** Not the bound itself (error-bounded sparse attention exists in the
+literature) but the *artifact*: the operator returns a certificate object carrying
+the bound, its witness, and a digest binding to the exact inputs; an independent
+verifier re-derives the bound, re-checks minimality and runs dense attention to
+confirm the measured error; a hash-chained ledger makes a run tamper-evident.
+
+**Evidence** (seed 20261204, CPU, 15.5 s): 1350 certificates with 0 bound violations
+and 0 verifier failures; 2-26% token retention at `eps = 0.01-0.05` on selective
+heads and correct refusal on flat ones; ~90% of a 256-chunk RAG context pruned with
+the gold chunk always retained and drift always inside its certificate; keeping 90%
+of the probability mass still moved the output by up to 4× the tolerance in 17/30
+queries where CASA had 0/30 violations; 7/7 tampering classes rejected.
+
+**Two honest negatives.** The certified bound is ~28× above the observed error on
+average (worst case is expensive), and summary-only key envelopes are vacuous at
+d = 64 for a scaling reason (`‖q‖r_g` grows like d, score spread like √d), which is
+why the default certifies on exact scores rather than on score bounds. Both are
+measured and reported in `docs/CASA.md` sections 4, 7 and 9.
+
+## 7. Conclusion
 
 We present a unified framework for multimodal AI research spanning video understanding, LLM agents, speech processing, and model evaluation. The framework demonstrates practical implementations of Transformer attention, diffusion models, GANs, and LLM post-training techniques, with automated evaluation pipelines using LLM-as-a-Judge.
 

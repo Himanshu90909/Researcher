@@ -1,0 +1,424 @@
+{
+  "seed": 20261204,
+  "quick": true,
+  "runtime_s": 3.47,
+  "E1_validity": {
+    "certificates": 540,
+    "configs": 54,
+    "bound_violations": 0,
+    "independent_verifier_failures": 0,
+    "worst_measured_over_bound": 0.6476818387214077
+  },
+  "E2_frontier": {
+    "query_scale_2": [
+      {
+        "eps": 0.5,
+        "retention_mean": 0.9583333333333334,
+        "retention_p95": 1.0,
+        "measured_error_mean": 0.002397062916572078,
+        "measured_error_p95": 0.009001887266318957,
+        "bound_mean": 0.18078469052408339,
+        "ratio_mean": 0.005687837906872776
+      },
+      {
+        "eps": 0.2,
+        "retention_mean": 0.9765625,
+        "retention_p95": 1.0,
+        "measured_error_mean": 0.0010191326341331276,
+        "measured_error_p95": 0.0035297267610025582,
+        "bound_mean": 0.09400044286888971,
+        "ratio_mean": 0.005385831845418613
+      },
+      {
+        "eps": 0.1,
+        "retention_mean": 0.9973958333333334,
+        "retention_p95": 1.0,
+        "measured_error_mean": 5.5809101871281024e-05,
+        "measured_error_p95": 0.0002511409584207646,
+        "bound_mean": 0.01644415129931864,
+        "ratio_mean": 0.0005656428726079796
+      },
+      {
+        "eps": 0.05,
+        "retention_mean": 1.0,
+        "retention_p95": 1.0,
+        "measured_error_mean": 0.0,
+        "measured_error_p95": 0.0,
+        "bound_mean": 0.0,
+        "ratio_mean": 0.0
+      },
+      {
+        "eps": 0.02,
+        "retention_mean": 1.0,
+        "retention_p95": 1.0,
+        "measured_error_mean": 0.0,
+        "measured_error_p95": 0.0,
+        "bound_mean": 0.0,
+        "ratio_mean": 0.0
+      },
+      {
+        "eps": 0.01,
+        "retention_mean": 1.0,
+        "retention_p95": 1.0,
+        "measured_error_mean": 0.0,
+        "measured_error_p95": 0.0,
+        "bound_mean": 0.0,
+        "ratio_mean": 0.0
+      }
+    ],
+    "query_scale_4": [
+      {
+        "eps": 0.5,
+        "retention_mean": 0.7291666666666666,
+        "retention_p95": 0.87109375,
+        "measured_error_mean": 0.002166919960777561,
+        "measured_error_p95": 0.003986468702386373,
+        "bound_mean": 0.4712496070621403,
+        "ratio_mean": 0.004586334551741775
+      },
+      {
+        "eps": 0.2,
+        "retention_mean": 0.6979166666666666,
+        "retention_p95": 0.953125,
+        "measured_error_mean": 0.002303408921262506,
+        "measured_error_p95": 0.004479001937065948,
+        "bound_mean": 0.16949242463345535,
+        "ratio_mean": 0.012705096992239977
+      },
+      {
+        "eps": 0.1,
+        "retention_mean": 0.8151041666666666,
+        "retention_p95": 0.9140625,
+        "measured_error_mean": 0.0007615357268789953,
+        "measured_error_p95": 0.0012502538586297977,
+        "bound_mean": 0.09326542235213348,
+        "ratio_mean": 0.008061594091283862
+      },
+      {
+        "eps": 0.05,
+        "retention_mean": 0.7890625,
+        "retention_p95": 0.87109375,
+        "measured_error_mean": 0.0007950271362924216,
+        "measured_error_p95": 0.0015732758070530607,
+        "bound_mean": 0.046461649088380574,
+        "ratio_mean": 0.01686654407088062
+      },
+      {
+        "eps": 0.02,
+        "retention_mean": 0.9375,
+        "retention_p95": 0.984375,
+        "measured_error_mean": 0.0001695465858888906,
+        "measured_error_p95": 0.00044397306124603267,
+        "bound_mean": 0.01367336255251573,
+        "ratio_mean": 0.011041742771025717
+      },
+      {
+        "eps": 0.01,
+        "retention_mean": 0.953125,
+        "retention_p95": 0.99609375,
+        "measured_error_mean": 7.886025742673672e-05,
+        "measured_error_p95": 0.0001696301463939563,
+        "bound_mean": 0.007236822614891309,
+        "ratio_mean": 0.008786448730852438
+      }
+    ],
+    "query_scale_8": [
+      {
+        "eps": 0.5,
+        "retention_mean": 0.14322916666666666,
+        "retention_p95": 0.2109375,
+        "measured_error_mean": 0.006738442633462051,
+        "measured_error_p95": 0.010956423507581756,
+        "bound_mean": 0.41669467589679865,
+        "ratio_mean": 0.01627176075294089
+      },
+      {
+        "eps": 0.2,
+        "retention_mean": 0.20052083333333334,
+        "retention_p95": 0.54296875,
+        "measured_error_mean": 0.0023744500647668943,
+        "measured_error_p95": 0.0054352344631680245,
+        "bound_mean": 0.13287096010255658,
+        "ratio_mean": 0.01997202423076996
+      },
+      {
+        "eps": 0.1,
+        "retention_mean": 0.1875,
+        "retention_p95": 0.4296875,
+        "measured_error_mean": 0.0014038040349959992,
+        "measured_error_p95": 0.0021408348003100295,
+        "bound_mean": 0.08692456691193014,
+        "ratio_mean": 0.016373433240698877
+      },
+      {
+        "eps": 0.05,
+        "retention_mean": 0.203125,
+        "retention_p95": 0.38671875,
+        "measured_error_mean": 0.0007609234444430881,
+        "measured_error_p95": 0.001288233323475189,
+        "bound_mean": 0.040393748662818564,
+        "ratio_mean": 0.01870272905158277
+      },
+      {
+        "eps": 0.02,
+        "retention_mean": 0.2890625,
+        "retention_p95": 0.59375,
+        "measured_error_mean": 0.0003710597951937517,
+        "measured_error_p95": 0.0005249320605101634,
+        "bound_mean": 0.01632991709964544,
+        "ratio_mean": 0.0227685672970066
+      },
+      {
+        "eps": 0.01,
+        "retention_mean": 0.453125,
+        "retention_p95": 0.8046875,
+        "measured_error_mean": 0.000132505019204907,
+        "measured_error_p95": 0.00019906853371394348,
+        "bound_mean": 0.009073142260363517,
+        "ratio_mean": 0.015011736767752214
+      }
+    ],
+    "query_scale_16": [
+      {
+        "eps": 0.5,
+        "retention_mean": 0.028645833333333332,
+        "retention_p95": 0.07421875,
+        "measured_error_mean": 0.001276407946905642,
+        "measured_error_p95": 0.003480189602877718,
+        "bound_mean": 0.05805762673266033,
+        "ratio_mean": 0.029891343454200067
+      },
+      {
+        "eps": 0.2,
+        "retention_mean": 0.0546875,
+        "retention_p95": 0.10546875,
+        "measured_error_mean": 0.0023607701962457097,
+        "measured_error_p95": 0.004109824868829922,
+        "bound_mean": 0.09947326400712007,
+        "ratio_mean": 0.024873224614434947
+      },
+      {
+        "eps": 0.1,
+        "retention_mean": 0.08854166666666667,
+        "retention_p95": 0.18359375,
+        "measured_error_mean": 0.0010233530416248133,
+        "measured_error_p95": 0.002150666698315923,
+        "bound_mean": 0.05460774470008483,
+        "ratio_mean": 0.01997389714101293
+      },
+      {
+        "eps": 0.05,
+        "retention_mean": 0.1484375,
+        "retention_p95": 0.1875,
+        "measured_error_mean": 0.000431152784138189,
+        "measured_error_p95": 0.0007838464618801029,
+        "bound_mean": 0.037086393359037885,
+        "ratio_mean": 0.012095060320719464
+      },
+      {
+        "eps": 0.02,
+        "retention_mean": 0.0625,
+        "retention_p95": 0.140625,
+        "measured_error_mean": 0.0002578288926426337,
+        "measured_error_p95": 0.000599815626820206,
+        "bound_mean": 0.008403571241185234,
+        "ratio_mean": 0.030291235662149543
+      },
+      {
+        "eps": 0.01,
+        "retention_mean": 0.14583333333333334,
+        "retention_p95": 0.34375,
+        "measured_error_mean": 0.00012024210611963889,
+        "measured_error_p95": 0.00018767522796916811,
+        "bound_mean": 0.006668684779385279,
+        "ratio_mean": 0.019062454354178866
+      }
+    ]
+  },
+  "E3_tightness": {
+    "measured_over_bound": {
+      "n": 10,
+      "mean": 0.04233091465443813,
+      "p50": 0.049613696268093616,
+      "p95": 0.06719294974609524,
+      "max": 0.07257708846776419
+    },
+    "relative_error_of_pruned_output": {
+      "mean": 0.0022849259630151175,
+      "p95": 0.008165155116636354
+    },
+    "note": "ratio <= 1 always (the theorem); the mean reports how conservative it is"
+  },
+  "E4_heuristic_control": {
+    "benign_values": {
+      "eps": 0.05,
+      "n": 8,
+      "calibrated_topk": {
+        "budget_chosen": 0.02,
+        "calibration_worst_error": 0.016146348130257965,
+        "heldout_violations": 0,
+        "heldout_n": 20,
+        "heldout_worst_error": 0.0032843134139412767
+      },
+      "matched_retention_mean": 0.203125,
+      "mass_pruner_retention_mean": 0.00244140625,
+      "casa_error_max": 0.0011317724479280634,
+      "casa_violations": 0,
+      "casa_certified_all": true,
+      "topk_error_median": 2.2124481807848692e-07,
+      "topk_error_max": 6.256058739529844e-07,
+      "topk_violations": 0,
+      "mass_error_median": 0.06751759137069988,
+      "mass_error_max": 0.10758239003805646,
+      "mass_violations": 6
+    },
+    "adversarial_values": {
+      "eps": 0.05,
+      "n": 8,
+      "calibrated_topk": {
+        "budget_chosen": 0.05,
+        "calibration_worst_error": 0.0017622373043690313,
+        "heldout_violations": 0,
+        "heldout_n": 20,
+        "heldout_worst_error": 0.0015232548577134152
+      },
+      "matched_retention_mean": 0.416015625,
+      "mass_pruner_retention_mean": 0.0025634765625,
+      "casa_error_max": 0.0003465273268012254,
+      "casa_violations": 0,
+      "casa_certified_all": true,
+      "topk_error_median": 3.0180275264777187e-09,
+      "topk_error_max": 4.2844424116937506e-07,
+      "topk_violations": 0,
+      "mass_error_median": 0.03624087153313696,
+      "mass_error_max": 0.1004820559167151,
+      "mass_violations": 3
+    }
+  },
+  "E5_envelope_ablation": {
+    "isotropic_gaussian": {
+      "norm": {
+        "retention_mean": 1.0,
+        "dense_fallback_fraction": 1.0
+      },
+      "centroid": {
+        "retention_mean": 1.0,
+        "dense_fallback_fraction": 1.0
+      },
+      "exact": {
+        "retention_mean": 0.265625,
+        "dense_fallback_fraction": 0.0
+      }
+    },
+    "clustered_keys": {
+      "norm": {
+        "retention_mean": 1.0,
+        "dense_fallback_fraction": 1.0
+      },
+      "centroid": {
+        "retention_mean": 1.0,
+        "dense_fallback_fraction": 1.0
+      },
+      "exact": {
+        "retention_mean": 0.65625,
+        "dense_fallback_fraction": 0.0
+      }
+    },
+    "clustered_keys_adversarial_values": {
+      "norm": {
+        "retention_mean": 1.0,
+        "dense_fallback_fraction": 1.0
+      },
+      "centroid": {
+        "retention_mean": 1.0,
+        "dense_fallback_fraction": 1.0
+      },
+      "exact": {
+        "retention_mean": 0.72265625,
+        "dense_fallback_fraction": 0.0
+      }
+    },
+    "eps": 0.1,
+    "note": "an envelope must hedge a d-dimensional residual, so its slack grows ~d while the score spread grows ~sqrt(d); at d=64 the bound-only schemes certify nothing. This is why CASA defaults to exact scores."
+  },
+  "E6_rag_context_pruning": {
+    "chunks": 128,
+    "dim": 32,
+    "audit_reps": 5,
+    "rows": [
+      {
+        "eps": 0.5,
+        "token_savings_mean": 0.9368146214099218,
+        "chunks_retained_mean": 0.06318537859007822,
+        "gold_chunk_retention_rate": 1.0,
+        "measured_drift_median": 0.09207037142006419,
+        "measured_drift_max": 0.12188227244900787,
+        "certified_bound_mean": 0.4452912381706973,
+        "certificate_violations": 0
+      },
+      {
+        "eps": 0.2,
+        "token_savings_mean": 0.9362924281984334,
+        "chunks_retained_mean": 0.06370757180156661,
+        "gold_chunk_retention_rate": 1.0,
+        "measured_drift_median": 0.038798097599245344,
+        "measured_drift_max": 0.04477360649186104,
+        "certified_bound_mean": 0.18084026900061265,
+        "certificate_violations": 0
+      },
+      {
+        "eps": 0.1,
+        "token_savings_mean": 0.9383812010443865,
+        "chunks_retained_mean": 0.06161879895561351,
+        "gold_chunk_retention_rate": 1.0,
+        "measured_drift_median": 0.016247719142099618,
+        "measured_drift_max": 0.03580595615031524,
+        "certified_bound_mean": 0.08323640222362887,
+        "certificate_violations": 0
+      },
+      {
+        "eps": 0.05,
+        "token_savings_mean": 0.8485639686684074,
+        "chunks_retained_mean": 0.15143603133159256,
+        "gold_chunk_retention_rate": 1.0,
+        "measured_drift_median": 0.004045796853094301,
+        "measured_drift_max": 0.012227220517293705,
+        "certified_bound_mean": 0.0445707459635573,
+        "certificate_violations": 0
+      }
+    ]
+  },
+  "E7_cost": {
+    "n_1024": {
+      "dense_ms": 0.06658433331570753,
+      "certified_ms_bind_false": 0.7976879999963179,
+      "overhead_x_bind_false": 11.98011544568758,
+      "certified_ms_bind_true": 3.1876180000078116,
+      "overhead_x_bind_true": 47.873393653936894,
+      "retention": 0.1875
+    },
+    "n_4096": {
+      "dense_ms": 0.24042899997311906,
+      "certified_ms_bind_false": 2.827923333332668,
+      "overhead_x_bind_false": 11.7619893342685,
+      "certified_ms_bind_true": 11.698975999972086,
+      "overhead_x_bind_true": 48.65875581265188,
+      "retention": 0.2578125
+    },
+    "note": "a single numpy CPU head is not the regime where pruning pays: dense attention is 0.05-0.2 ms, so constant-factor bookkeeping dominates the ratio even though the asymptotics match (O(Nd)). Cryptographic binding costs one pass over the tensors and dominates at 16k tokens, which is why the certificate can instead refer to a caller-supplied block identifier (bind=False). The saving CASA buys is on the retained tokens, not on the score pass: see E6."
+  },
+  "E8_tamper_detection": {
+    "valid_certificate_verifies": true,
+    "tamper_cases": {
+      "inflate_eps": true,
+      "shrink_bound": true,
+      "shrink_tau": true,
+      "drop_more_tokens": true,
+      "swap_retained_token": true,
+      "fake_bound_claim": true,
+      "honest_measured_error": true
+    },
+    "detection_rate": 1.0,
+    "foreign_problem_rejected": true
+  }
+}

@@ -2,11 +2,26 @@
 
 A comprehensive research framework implementing state-of-the-art multimodal AI for video understanding, generative models, LLM agents, speech processing, and AR/VR video generation. Aligned with Meta's research areas including Make-A-Video, Neural Radiance Fields, SceneScript, and Codec Avatars.
 
+> **Original contribution:** `src/research/casa` — *proof-carrying sparse attention*.
+> Every pruned attention output ships a deterministic, machine-checkable bound on its
+> distance from the exact output, plus an independent verifier and a tamper-evident
+> ledger. 2-26% token retention at `eps = 0.01-0.05` with **0 bound violations in 1350
+> certificates**, and ~90% of a RAG context dropped with the drift always inside its
+> certificate. Theorems, proofs, honest negatives and full experiments:
+> **[docs/CASA.md](docs/CASA.md)**.
+
 ## Architecture
 
 ```
 Researcher/
 ├── src/
+│   ├── research/
+│   │   └── casa/                      # ★ ORIGINAL CONTRIBUTION (see docs/CASA.md)
+│   │       ├── bounds.py              #   Theorem 1 + Theorem 2, certified pattern search
+│   │       ├── certificate.py         #   proof-carrying output, independent verifier, ledger
+│   │       ├── attention.py           #   certified sparse attention + heuristic baselines
+│   │       ├── context.py             #   certified pruning of retrieved RAG context
+│   │       └── torch_head.py          #   nn.Module wrapper with autograd through kept tokens
 │   ├── models/
 │   │   ├── transformer_model.py      # Multimodal Transformer with cross-attention
 │   │   ├── diffusion_sr.py            # DDPM diffusion + ESRGAN super-resolution
@@ -36,9 +51,11 @@ Researcher/
 │   └── utils/
 │       └── data_preprocessing.py     # Video & audio preprocessing utilities
 ├── notebooks/                         # Research notebooks (7)
-├── tests/                             # Test suites (20+ tests)
-├── scripts/                           # Training & evaluation scripts
+├── tests/                             # Test suites (20+ tests, incl. 18 for CASA)
+├── scripts/                           # Training, evaluation & CASA experiment scripts
 ├── configs/                           # YAML configurations
+├── results/casa/                      # Committed CASA results + figures
+├── docs/CASA.md                       # ★ CASA paper: theorems, proofs, experiments
 └── RESEARCH_PAPER.md                  # Full research paper documentation
 ```
 
@@ -97,6 +114,48 @@ Researcher/
 | DINOv2 | Multimodal Transformer, Contrastive Alignment |
 | Emu Video | Diffusion SR, Autoregressive Model |
 
+### 7. Certified Adaptive Sparse Attention (CASA) — original research
+
+Everything else in this repository reproduces published work. This module is the
+one original contribution: **proof-carrying approximation**. Instead of claiming
+"we dropped 90% of the tokens and it looked fine", CASA returns the output *plus a
+machine-checkable certificate*: a deterministic upper bound on `‖out_sparse −
+out_dense‖₂`, together with the witness needed to re-derive it.
+
+```python
+from src.research import casa
+
+out, cert = casa.certified_sparse_attention(q, K, V, block_size=16, eps=0.05)
+cert.valid                       # bound <= eps, and not a fallback
+cert.retention                   # 0.242  -> 76% of tokens dropped
+cert.error_bound                 # 0.0411 -> provable, for THIS query
+casa.verify_certificate(cert, q, K, V)   # independent re-derivation: PASS
+```
+
+The results, with the honest ones included:
+
+| | |
+|---|---|
+| Theorem 1 | `‖o_S − o‖ ≤ τ(D_S + D_D) ≤ 2τD` for renormalized pruning, any data, factor 2 is tight |
+| Theorem 2 | `τ ≤ min(1, exp(Σ_{dropped} (log n_g + u_g) − m_S))`, so `τ` needs only block summaries |
+| Guarantee | 1350 certificates, **0 bound violations**, 0 verifier failures (E1) |
+| Sparsity | 2-26% of tokens retained at `eps = 0.01-0.05` on selective heads; a flat head correctly refuses to prune (E2) |
+| Heuristic control | keeping 90% of the probability mass still moved the output by 0.19 (4× the tolerance) in 17/30 queries; CASA 0/30 (E4) |
+| Retrieval | **~90% of RAG context tokens dropped**, gold chunk kept in 12/12 runs, drift always inside its certificate (E6) |
+| Auditing | 7/7 tampering classes rejected; certificate bound to its inputs by digest; hash-chained ledger (E8) |
+| Cost | not a FlashAttention competitor: same asymptotics, ~11× constant on a NumPy CPU head (E7) |
+| Negative result | score-envelope-only certification is vacuous at d=64, for a scaling reason (E5) |
+
+Full write-up with proofs, pseudocode, per-experiment tables and limitations:
+**[docs/CASA.md](docs/CASA.md)**. Reproduce with
+`python scripts/run_casa_experiments.py` (~16 s, CPU only) and
+`python -m pytest tests/test_casa.py -q` (18 tests).
+
+The point of the module is not that approximate attention can be bounded — that has
+been done in the literature — but that the bound is *shipped as an artifact you can
+audit*: witness included, verifier independent, minimality re-checked, tampering
+detectable.
+
 ## Usage
 
 ```python
@@ -104,6 +163,7 @@ Researcher/
 python tests/test_framework.py    # Core framework tests
 python tests/test_extended.py     # Extended module tests
 python tests/test_arvr.py         # AR/VR module tests
+python -m pytest tests/test_casa.py -q   # CASA: 18 tests for the certified-attention paper
 
 # Research notebooks
 python notebooks/01_transformer_attention.py
@@ -117,6 +177,9 @@ python notebooks/07_arvr_video.py
 # Training & evaluation
 python scripts/train.py --model diffusion --epochs 100
 python scripts/evaluate.py --model all --judge gpt-4
+
+# CASA experiments (8 studies -> results/casa/ + 3 figures)
+python scripts/run_casa_experiments.py
 ```
 
 ## Key References
