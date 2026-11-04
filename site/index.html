@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CASA: Certified Adaptive Sparse Attention — Himanshu Suthar</title>
+<meta name="description" content="Proof-carrying approximation for attention and retrieved context: deterministic, machine-checkable error bounds for sparse attention and RAG context pruning.">
+<meta name="author" content="Himanshu Suthar">
+<meta property="og:title" content="CASA: Certified Adaptive Sparse Attention">
+<meta property="og:description" content="Every pruned attention output ships a deterministic, machine-checkable bound on its distance from the exact output.">
+<style>
+  :root{
+    --paper:#fbfaf7; --ink:#17181a; --muted:#5f6469; --rule:#e2ded6;
+    --accent:#1d4e8f; --accent-soft:#eaf0f8; --good:#1f7a4d; --warn:#a8412a;
+    --card:#ffffff; --code:#f4f1ea; --shadow:0 1px 2px rgba(20,20,20,.05),0 8px 24px -18px rgba(20,20,20,.35);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#14151a; --ink:#e9e7e2; --muted:#a0a4ac; --rule:#2b2d34;
+      --accent:#8ab0e8; --accent-soft:#1b2434; --good:#5ec98f; --warn:#e08a72;
+      --card:#1a1c22; --code:#1e2027; --shadow:none;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--serif); font-size:18px; line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+  a:hover{border-bottom-color:var(--accent)}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+  .layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:56px;align-items:start}
+  @media (max-width:900px){.layout{grid-template-columns:1fr;gap:0}nav.toc{display:none}}
+
+  header.masthead{padding:64px 0 28px;border-bottom:1px solid var(--rule)}
+  .kicker{font-family:var(--sans);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  h1{font-size:clamp(30px,4.6vw,52px);line-height:1.1;margin:14px 0 10px;letter-spacing:-.02em;font-weight:600}
+  .subtitle{font-size:clamp(17px,2vw,21px);color:var(--muted);margin:0 0 26px;font-style:italic}
+  .byline{font-family:var(--sans);font-size:14.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline}
+  .byline b{color:var(--ink);font-weight:600}
+  .links{margin-top:18px;display:flex;flex-wrap:wrap;gap:10px;font-family:var(--sans);font-size:13.5px}
+  .links a{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid var(--rule);border-radius:999px;
+           background:var(--card);color:var(--ink);border-bottom:1px solid var(--rule);box-shadow:var(--shadow)}
+  .links a:hover{border-color:var(--accent);color:var(--accent)}
+
+  .abstract{margin:34px 0 0;padding:24px 26px;background:var(--card);border:1px solid var(--rule);border-left:3px solid var(--accent);
+            border-radius:4px;box-shadow:var(--shadow);font-size:17.5px}
+  .abstract h2{font-family:var(--sans);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:1px;background:var(--rule);
+         border:1px solid var(--rule);border-radius:4px;overflow:hidden;margin:28px 0 8px}
+  .stat{background:var(--card);padding:16px 18px}
+  .stat .n{font-family:var(--sans);font-size:24px;font-weight:650;letter-spacing:-.02em;display:block;line-height:1.2}
+  .stat .n.good{color:var(--good)} .stat .n.warn{color:var(--warn)}
+  .stat .l{font-family:var(--sans);font-size:12px;color:var(--muted);margin-top:4px;display:block}
+
+  nav.toc{position:sticky;top:24px;font-family:var(--sans);font-size:13.5px;padding-top:56px}
+  nav.toc ol{list-style:none;margin:0;padding:0;counter-reset:s}
+  nav.toc li{counter-increment:s;margin:0 0 2px}
+  nav.toc a{display:block;padding:5px 0 5px 26px;color:var(--muted);border:0;position:relative}
+  nav.toc a::before{content:counter(s) ".";position:absolute;left:0;color:color-mix(in srgb,var(--muted) 70%,transparent)}
+  nav.toc a:hover{color:var(--accent)}
+
+  main{padding:56px 0 90px;min-width:0}
+  section{margin:0 0 52px;scroll-margin-top:24px}
+  h2.sec{font-size:clamp(22px,2.6vw,29px);letter-spacing:-.01em;margin:0 0 6px;font-weight:600}
+  h2.sec .num{font-family:var(--sans);font-size:13px;color:var(--accent);display:block;letter-spacing:.14em;margin-bottom:8px}
+  h3{font-family:var(--sans);font-size:16px;font-weight:650;margin:28px 0 8px;letter-spacing:.01em}
+  p{margin:0 0 16px}
+  ul,ol{margin:0 0 16px;padding-left:22px} li{margin:0 0 8px}
+  code{font-family:var(--mono);font-size:.86em;background:var(--code);padding:1px 5px;border-radius:3px;border:1px solid var(--rule)}
+  pre{font-family:var(--mono);font-size:13.2px;line-height:1.6;background:var(--code);border:1px solid var(--rule);
+      border-radius:4px;padding:15px 17px;overflow-x:auto;margin:0 0 18px}
+  pre code{background:none;border:0;padding:0;font-size:inherit}
+
+  .thm{background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 22%,var(--rule));
+       border-radius:4px;padding:18px 20px;margin:0 0 18px}
+  .thm .lab{font-family:var(--sans);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+            color:var(--accent);font-weight:650;display:block;margin-bottom:8px}
+  .thm p:last-child{margin-bottom:0}
+  .proof{font-size:16.5px;color:var(--muted);padding-left:16px;border-left:2px solid var(--rule);margin:0 0 18px}
+  .proof .lab{font-family:var(--sans);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+              color:var(--muted);font-weight:600;display:block;margin-bottom:6px}
+
+  figure{margin:26px 0;padding:0}
+  figure img{width:100%;height:auto;border:1px solid var(--rule);border-radius:4px;background:#fff}
+  figcaption{font-family:var(--sans);font-size:13px;color:var(--muted);margin-top:9px;line-height:1.5}
+
+  table{width:100%;border-collapse:collapse;margin:0 0 20px;font-family:var(--sans);font-size:14px}
+  caption{caption-side:top;text-align:left;font-family:var(--sans);font-size:12.5px;color:var(--muted);padding-bottom:8px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+  thead th{font-weight:650;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+           border-bottom:1.5px solid color-mix(in srgb,var(--ink) 25%,transparent)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr.best td{background:color-mix(in srgb,var(--good) 9%,transparent);font-weight:600}
+  tr.bad td{background:color-mix(in srgb,var(--warn) 9%,transparent)}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .callout{border:1px solid var(--rule);border-left:3px solid var(--warn);background:var(--card);
+           border-radius:4px;padding:16px 18px;margin:0 0 20px;font-size:16.5px}
+  .callout.good{border-left-color:var(--good)}
+  .callout .lab{font-family:var(--sans);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+                font-weight:650;color:var(--muted);display:block;margin-bottom:6px}
+
+  footer{border-top:1px solid var(--rule);padding:28px 0 60px;font-family:var(--sans);font-size:13.5px;color:var(--muted)}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:space-between}
+  @media print{
+    nav.toc,.links{display:none} .layout{grid-template-columns:1fr} body{font-size:11.5pt}
+    section{break-inside:avoid} figure{break-inside:avoid} .stats{break-inside:avoid}
+    header.masthead{padding-top:0} a{border:0;color:inherit}
+  }
+</style>
+</head>
+<body>
+
+<header class="masthead"><div class="wrap">
+  <div class="kicker">Preprint · November 2026 · Systems &amp; Theory</div>
+  <h1>CASA: Certified Adaptive Sparse Attention</h1>
+  <p class="subtitle">Proof-carrying approximation for attention and retrieved context</p>
+  <div class="byline">
+    <span><b>Himanshu Suthar</b></span>
+    <span>B.Tech CSE (AI &amp; ML), Lovely Professional University</span>
+    <span>sutharindustry@gmail.com</span>
+  </div>
+  <div class="links">
+    <a href="https://github.com/Himanshu90909/Researcher">↗ Code &amp; experiments</a>
+    <a href="https://github.com/Himanshu90909/Researcher/blob/main/docs/CASA.md">↗ Paper source (Markdown)</a>
+    <a href="https://github.com/Himanshu90909/Researcher/tree/main/results/casa">↗ Raw results (JSON)</a>
+  </div>
+
+  <div class="abstract">
+    <h2>Abstract</h2>
+    <p>Fast-attention and retrieval systems justify approximation with an anecdote: <em>“we dropped 90% of the
+    tokens and the outputs looked fine.”</em> That is a fact about a sample, not a guarantee about the next query.
+    We present <b>CASA</b>, an attention operator and retrieval-context pruner that returns its output together with a
+    <b>deterministic, machine-checkable certificate</b>: an upper bound on the L2 distance between the pruned output and
+    exact attention, valid for every query, key and value set, with no concentration inequality and no calibration data.
+    The bound is derived from two facts — the dropped softmax mass and the geometry of the dropped values — and needs only
+    the retained scores plus one scalar per dropped block, so dropped keys and values are never read.
+    The bound is tight to a factor of two, and that factor is attained. Given a tolerance ε, the operator returns the
+    <i>smallest</i> certifiable pattern; when nothing certifies, it falls back to exact attention and says so.
+    Certificates carry the witness needed to re-derive the bound, bind to their inputs by digest, and an independent
+    verifier re-checks the bound, the minimality of the pattern, and the measured error. Across 1350 certificates spanning
+    54 configurations we observe <b>zero bound violations and zero verifier failures</b>; on selective attention heads the
+    operator retains 2–26% of tokens at ε = 0.01–0.05, and on a 256-chunk retrieval context it drops ~90% of the tokens
+    while always keeping the relevant chunk and always staying inside its certified drift.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><span class="n good">0</span><span class="l">bound violations in 1350 certificates</span></div>
+    <div class="stat"><span class="n">2–26%</span><span class="l">tokens retained at ε = 0.01–0.05</span></div>
+    <div class="stat"><span class="n">~90%</span><span class="l">RAG context tokens dropped, certified</span></div>
+    <div class="stat"><span class="n good">7/7</span><span class="l">tampering classes rejected</span></div>
+    <div class="stat"><span class="n warn">11×</span><span class="l">cost vs dense: a guarantee, not a speedup</span></div>
+  </div>
+</div></header>
+
+<div class="wrap"><div class="layout">
+
+<nav class="toc" aria-label="Contents"><ol>
+  <li><a href="#problem">The problem</a></li>
+  <li><a href="#theorem1">Theorem 1</a></li>
+  <li><a href="#theorem2">Theorem 2</a></li>
+  <li><a href="#envelopes">Where bounds come from</a></li>
+  <li><a href="#algorithm">Algorithm</a></li>
+  <li><a href="#certificate">The certificate</a></li>
+  <li><a href="#experiments">Experiments</a></li>
+  <li><a href="#related">Novelty, honestly</a></li>
+  <li><a href="#limits">Limitations</a></li>
+  <li><a href="#reproduce">Reproduce</a></li>
+</ol></nav>
+
+<main>
+
+<section id="problem">
+  <h2 class="sec"><span class="num">Section 1</span>The problem this solves</h2>
+  <p>Every fast-attention and context-pruning system in production answers the same question with an anecdote.
+  CASA replaces the anecdote with a number. Given a tolerance ε it</p>
+  <ol>
+    <li>finds the <b>fewest</b> key blocks whose pruned output is provably within ε of the exact output (L2, in the units
+        of the value vectors),</li>
+    <li>returns the output <b>and</b> a certificate: a deterministic upper bound on the error, plus the witness needed to
+        re-derive it,</li>
+    <li>refuses to prune when nothing can be certified, instead of quietly breaking the promise
+        (<code>cert.fallback == True</code>).</li>
+  </ol>
+  <p>The bounds hold for <b>every</b> query, key and value set. A reviewer holding the tensors can re-derive the guarantee
+  in milliseconds, and 7/7 tampering attempts are caught. Two settings are governed by the same theorem:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Setting</th><th>What is dropped</th><th>What the certificate buys</th></tr></thead>
+    <tbody>
+      <tr><td>Attention</td><td>key blocks</td><td>bounded deviation of the head’s output</td></tr>
+      <tr><td>Retrieval (RAG)</td><td>retrieved chunks</td><td>bounded drift of the softmax-weighted context vector</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="theorem1">
+  <h2 class="sec"><span class="num">Section 2</span>Notation and Theorem 1</h2>
+  <p>Let <code>q ∈ R^d</code>, keys <code>k_i</code>, values <code>v_i ∈ R^m</code>, scores <code>s_i = ⟨q, k_i⟩/√d</code>,
+  <code>p = softmax(s)</code>, and the exact (“dense”) output</p>
+  <pre><code>o = Σ_i p_i v_i</code></pre>
+  <p>A pruner keeps <code>S ⊆ [N]</code>, drops <code>D = [N] \ S</code>, and renormalizes over <code>S</code>:</p>
+  <pre><code>o_S = Σ_{i ∈ S} p^S_i v_i ,    p^S_i = e^{s_i} / Z_S ,    Z_S = Σ_{i ∈ S} e^{s_i}</code></pre>
+  <p>and <code>τ = 1 − Z_S/Z</code> is the <b>dropped probability mass</b>.</p>
+
+  <div class="thm">
+    <span class="lab">Theorem 1 — renormalized-pruning error bound</span>
+    <p>For any reference vector <code>c</code>, with <code>D_S = max_{i∈S} ‖v_i − c‖</code> and
+    <code>D_D = max_{i∈D} ‖v_i − c‖</code>,</p>
+    <pre><code>‖o_S − o‖₂  ≤  τ · ( ‖o_S − c‖ + D_D )  ≤  τ · ( D_S + D_D )  ≤  2 τ D
+where  D = max_i ‖v_i − c‖</code></pre>
+  </div>
+
+  <div class="proof">
+    <span class="lab">Proof</span>
+    <p>Since <code>Z_S = (1−τ) Z</code>, for <code>i ∈ S</code> we have <code>p^S_i = p_i/(1−τ)</code>. Put
+    <code>d_i = v_i − c</code>. Then</p>
+    <pre><code>o_S − o = Σ_{i∈S} p^S_i d_i − Σ_i p_i d_i
+        = Σ_{i∈S} p^S_i d_i − (1−τ) Σ_{i∈S} p^S_i d_i − Σ_{i∈D} p_i d_i
+        = τ (o_S − c) − Σ_{i∈D} p_i d_i</code></pre>
+    <p>Now <code>‖o_S − c‖ ≤ Σ_{i∈S} p^S_i ‖d_i‖ ≤ D_S</code> and
+    <code>‖Σ_{i∈D} p_i d_i‖ ≤ Σ_{i∈D} p_i ‖d_i‖ ≤ τ D_D</code>. Add the two. ∎</p>
+  </div>
+
+  <h3>Three remarks that matter for how the result is read</h3>
+  <p><b>The bound is tight to a factor of 2, and the factor is real.</b> Both <code>o_S</code> and <code>o</code> are convex
+  combinations, so no bound of this shape can be smaller than <code>τD</code>. The factor 2 is the price of comparing two
+  differently renormalized mixtures, and it is attained: two tokens, one kept with value <code>+D/2·u</code> and one dropped
+  with value <code>−D/2·u</code> at mass <code>τ = 1/2</code>, gives error exactly <code>τ(D_S + D_D)</code>.</p>
+  <p><b>The reference <code>c</code> is a free tightening knob.</b> Choosing <code>c = mean(v)</code> removes the common
+  value offset and shrinks both radii; <code>reference="global_mean"</code> is the default, <code>reference="zero"</code>
+  is the plain <code>2τ max‖v_i‖</code>.</p>
+  <p><b>Nothing about the data is assumed.</b> The bound is a statement about geometry: how far the dropped values sit from
+  the reference, and how much probability mass left. That is exactly why it cannot be fooled (§7, E4).</p>
+</section>
+
+<section id="theorem2">
+  <h2 class="sec"><span class="num">Section 3</span>Theorem 2: computing τ without reading the dropped tokens</h2>
+  <p>Theorem 1 needs <code>τ</code>, and computing <code>τ</code> naively means scoring every token. Partition the sequence
+  into blocks <code>g</code> of size <code>n_g</code> and let <code>u_g</code> be any upper bound on
+  <code>max_{i∈g} s_i</code>. For <code>S</code> a union of whole blocks and <code>m_S = max_{i∈S} s_i</code> (exact, only
+  retained scores needed):</p>
+
+  <div class="thm">
+    <span class="lab">Theorem 2 — tail mass from block summaries</span>
+    <pre><code>Z_D = Σ_{g∈D} Σ_{i∈g} e^{s_i}  ≤  Σ_{g∈D} n_g e^{u_g}  =:  exp(dropped_logmass)</code></pre>
+    <p>and since <code>Z ≥ Z_S ≥ e^{m_S}</code>,</p>
+    <pre><code>τ  ≤  τ̄ := min( 1, exp(dropped_logmass − m_S) )          (sum form)</code></pre>
+  </div>
+
+  <div class="proof">
+    <span class="lab">Proof</span>
+    <p><code>e^{s_i} ≤ e^{u_g}</code> inside block <code>g</code>, so each block mass is at most
+    <code>n_g e^{u_g}</code>; sum over dropped blocks. For the denominator, <code>Z</code> contains <code>Z_S</code>, which
+    contains the single term <code>e^{m_S}</code>. ∎</p>
+  </div>
+
+  <p>Dropping block sizes gives the cruder max form <code>τ ≤ min(1, N_D e^{u_D − m_S})</code>. The sum form is never worse
+  and is what the certifier uses. Dropped keys and values are never read individually: each dropped block contributes one
+  scalar, <code>log n_g + u_g</code>. Combining the two theorems gives the certificate CASA emits —</p>
+  <pre><code>‖o_S − o‖₂  ≤  τ̄ · (D_S + D_all) ,      τ̄ ≤ 1</code></pre>
+  <p>— from (i) exact scores of retained tokens, (ii) one log-mass scalar per dropped block, (iii) the scalar value radius
+  <code>D_all</code>.</p>
+</section>
+
+<section id="envelopes">
+  <h2 class="sec"><span class="num">Section 4</span>Where the bound comes from, and a useful negative result</h2>
+  <p>Theorem 2 accepts any <code>u_g</code>. Three schemes ship:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Scheme</th><th><code>u_g</code></th><th>What the index must store</th></tr></thead>
+    <tbody>
+      <tr><td><code>"exact"</code></td><td>exact block max of the scores</td><td>nothing extra (default)</td></tr>
+      <tr><td><code>"norm"</code></td><td><code>‖q‖ max_{i∈g}‖k_i‖ / √d</code></td><td>one float per block</td></tr>
+      <tr><td><code>"centroid"</code></td><td><code>(⟨q,μ_g⟩ + ‖q‖ r_g) / √d</code></td><td>centroid + radius per block</td></tr>
+    </tbody>
+  </table></div>
+  <p>The interesting result is that the two envelope-only schemes are <b>vacuous at d = 64</b>, and the reason is a scaling
+  argument rather than a tuning failure. An envelope has to hedge a d-dimensional residual, so its slack grows like
+  <code>‖q‖ r_g</code> — Θ(d) for isotropic keys — while the spread of the true scores grows only like Θ(√d). At d = 64 the
+  hedge swamps the signal. Retention at ε = 0.1 over 1024 tokens:</p>
+  <div class="scroll"><table>
+    <caption>E5 — summary-only certification, measured</caption>
+    <thead><tr><th>Key space</th><th class="num">norm envelope</th><th class="num">centroid envelope</th><th class="num">exact scores</th></tr></thead>
+    <tbody>
+      <tr><td>Isotropic Gaussian keys</td><td class="num">100%</td><td class="num">100%</td><td class="num best">20.8%</td></tr>
+      <tr><td>Clustered keys</td><td class="num">100%</td><td class="num">100%</td><td class="num">57.0%</td></tr>
+      <tr><td>Clustered keys, adversarial values</td><td class="num">100%</td><td class="num">100%</td><td class="num">70.3%</td></tr>
+    </tbody>
+  </table></div>
+  <p>So CASA defaults to <code>scheme="exact"</code>. That is a deliberate and honest choice: on current hardware the score
+  pass is the same order as the value pass, so bounding scores instead of computing them buys nothing and loses the ability
+  to certify anything. The envelope schemes are kept because they are the correct baseline for a future index that can
+  bound <code>Z_g</code> directly — a sketch, an LSH bucket, a learned quantizer — rather than bounding each score inside the
+  block. That is the research question this negative result points at, not a solved one. Note also that retention rises with
+  value difficulty (<code>20.8% → 70.3%</code>): the certificate correctly charges more when values are hostile.</p>
+  <figure>
+    <img src="figures/fig3_envelope_ablation.png" alt="Bar chart: retention at eps=0.1 for norm, centroid and exact envelope schemes, on isotropic keys, clustered keys, and clustered keys with adversarial values.">
+    <figcaption>E5 — bounding scores costs everything (100% retention on every key space, i.e. no pruning possible), while
+    computing them costs nothing extra and certifies 20–70% retention. The reason is dimensional: envelope slack grows like d,
+    score spread like √d.</figcaption>
+  </figure>
+</section>
+
+<section id="algorithm">
+  <h2 class="sec"><span class="num">Section 5</span>Algorithm</h2>
+  <pre><code>def certified_sparse_attention(q, K, V, block_size=16, eps=0.05, ...):
+    s        = K @ q / sqrt(d)                        # one score pass
+    envelope = block_bounds(q, K, block_size, scheme) # per-block u_g
+    order    = argsort(-envelope)                      # most promising first
+    for k in 1..G:                                     # all prefixes at once
+        S      = first k blocks in `order`
+        m_S    = max(s[S])                             # exact, retained only
+        lse_D  = logsumexp over dropped blocks of (log n_g + u_g)
+        tau    = min(1, exp(lse_D - m_S))              # Theorem 2
+        bound  = tau * (D_S + D_all)                   # Theorem 1
+    k*   = smallest k with bound <= eps                # minimality
+    out  = renormalized attention over S(k*)           # reuse `s`
+    return out, Certificate(...) if k* exists else (dense, fallback certificate)</code></pre>
+  <ul>
+    <li><b>Cost</b> <code>O(Nd + Nm + G log G)</code>: one score pass, one value pass, one sort. Every prefix is evaluated
+    elementwise in NumPy — there is no Python loop over blocks.</li>
+    <li><b>Anytime:</b> the whole retention/error frontier is a by-product, so a caller with a latency budget reads
+    <code>pattern.curve</code> and takes the cheapest prefix that meets its tolerance.</li>
+    <li><b>Minimality is part of the claim:</b> the returned pattern is the smallest certifiable prefix in the block
+    ordering, and the verifier re-checks that one fewer block fails (<code>minimal_for_order</code>).</li>
+    <li><b>Honest fallback:</b> if no prefix certifies, the output is dense attention and the certificate says
+    <code>fallback=True, feasible=False</code>. No silent guarantee-breaking.</li>
+  </ul>
+</section>
+
+<section id="certificate">
+  <h2 class="sec"><span class="num">Section 6</span>The certificate, and three levels of assurance</h2>
+  <pre><code>{
+  "eps": 0.05, "error_bound": 0.0411, "tau_bound": 0.0142,
+  "n_total": 2048, "n_retained": 496, "n_dropped": 1552,
+  "block_size": 16, "blocks_kept": 31, "scheme": "exact", "reference": "global_mean",
+  "max_kept_score": 12.83, "D_kept": 1.41, "D_all": 1.48, "dropped_logmass": 8.26,
+  "retained": [0, 3, 5, ...], "retained_digest": "9f2c…",
+  "q_digest": "4b71…", "k_digest": "c0ae…", "v_digest": "1d83…",
+  "feasible": true, "fallback": false, "measured_error": 0.0006,
+  "version": "casa-1.0", "created_at": "2026-12-04T…Z"
+}</code></pre>
+  <div class="scroll"><table>
+    <thead><tr><th>Level</th><th>Check</th><th>Needs</th><th>What it detects</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>cert.check_arithmetic()</code></td><td>nothing but the certificate</td>
+          <td>internally inconsistent or over-claimed numbers</td></tr>
+      <tr><td>2</td><td><code>cert.matches_inputs(q,K,V)</code></td><td>the tensors</td>
+          <td>a certificate issued for a different problem</td></tr>
+      <tr><td>3</td><td><code>verify_certificate(cert,q,K,V)</code></td><td>the tensors</td>
+          <td>a wrong bound, a non-minimal pattern, a dishonest <code>measured_error</code></td></tr>
+    </tbody>
+  </table></div>
+  <p>The verifier shares no code with the prover except the digest routine: it recomputes the retained set, the envelopes,
+  <code>τ̄</code>, the bound, and — by running dense attention — the true error. <code>CertificateLedger</code> hash-chains
+  certificates into JSON Lines so a run cannot be edited afterwards, and <code>verify_ledger</code> re-checks the chain plus
+  every entry’s arithmetic offline.</p>
+  <div class="callout good">
+    <span class="lab">E8 — the verifier has teeth</span>
+    <p>On a valid certificate: 7/7 mutations rejected (inflated ε, shrunk bound, shrunk τ̄, dropped retained token, swapped
+    retained token, zeroed bound, a <code>measured_error</code> inflated 5×), a foreign <code>(q,K,V)</code> rejected, and a
+    <code>1e−12</code> edit to a single key entry rejected. Detection rate 1.00. The inflated-ε case is caught by the
+    <i>minimality</i> check rather than the arithmetic: the numbers stay self-consistent, but the retained set is then larger
+    than the cheapest certifiable one.</p>
+  </div>
+</section>
+
+<section id="experiments">
+  <h2 class="sec"><span class="num">Section 7</span>Experiments</h2>
+  <p>Seed 20261204, CPU only, 15.5 s total. Synthetic problems: keys and queries unit-variance Gaussian;
+  <code>query_scale</code> multiplies the query norm and therefore controls attention peakedness (score standard deviation =
+  <code>query_scale</code>); values <code>N(0, 1/m)</code> so that <code>‖v‖ ≈ 1</code>.</p>
+
+  <h3>E1 — the theorem cannot be violated by a knob setting</h3>
+  <p>1350 certificates over 54 configurations (3 schemes × 3 block sizes × 2 key geometries × 3 peakedness levels, random ε,
+  N up to 1024):</p>
+  <div class="scroll"><table>
+    <tbody>
+      <tr><td>Bound violations</td><td class="num best">0</td></tr>
+      <tr><td>Independent verifier failures</td><td class="num best">0</td></tr>
+      <tr><td>Worst measured / bound ratio</td><td class="num">0.76</td></tr>
+    </tbody>
+  </table></div>
+  <p>The 0.76 matters: at least once a <i>real</i> error used 76% of its certified budget, so the bound is doing work rather
+  than sitting trivially far away.</p>
+
+  <h3>E2 — what a guarantee costs, as a function of peakedness</h3>
+  <p>Retention (%) at 2048 tokens, <code>block_size = 16</code>, exact scores:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>ε</th><th class="num">peakedness 2</th><th class="num">4</th><th class="num">8</th><th class="num">16</th></tr></thead>
+    <tbody>
+      <tr><td>0.5</td><td class="num">97.5</td><td class="num">62.4</td><td class="num">10.7</td><td class="num best">2.3</td></tr>
+      <tr><td>0.2</td><td class="num">99.4</td><td class="num">70.2</td><td class="num">17.6</td><td class="num best">2.1</td></tr>
+      <tr><td>0.1</td><td class="num">99.6</td><td class="num">81.2</td><td class="num">19.4</td><td class="num best">3.1</td></tr>
+      <tr><td>0.05</td><td class="num">99.9</td><td class="num">86.1</td><td class="num">24.2</td><td class="num best">3.5</td></tr>
+      <tr><td>0.02</td><td class="num">100</td><td class="num">91.4</td><td class="num">24.9</td><td class="num best">3.1</td></tr>
+      <tr><td>0.01</td><td class="num">100</td><td class="num">91.3</td><td class="num">26.5</td><td class="num best">5.6</td></tr>
+    </tbody>
+  </table></div>
+  <p>Two regimes, stated plainly. A flat head (peakedness 2) <b>cannot</b> be pruned within any useful L2 tolerance: the mass
+  is spread so widely that any block you drop is worth a large share of the output, and CASA keeps everything. A selective head
+  (peakedness 8–16) is pruned to <b>2–26% of tokens</b> with a certificate. Measured errors at those settings are 1e−4 to
+  4e−3, i.e. 2–20% of the output norm.</p>
+  <p><i>This is the honest headline:</i> certification costs whatever the attention distribution dictates, and it will tell you
+  when the answer is “do not prune”. A method that always reports 90% savings is not measuring the same thing.</p>
+  <figure>
+    <img src="figures/fig1_peakedness_frontier.png" alt="Two line charts: tokens retained versus certified error budget for four peakedness levels, and measured versus certified L2 error.">
+    <figcaption>E2 — sparsity that comes with a guarantee (left) and measured error against its certificate (right, dotted).
+    Certification cost tracks the attention distribution, not the marketing target.</figcaption>
+  </figure>
+
+  <h3>E3 — how conservative is it?</h3>
+  <div class="scroll"><table>
+    <caption>40 random (ε, peakedness) combinations</caption>
+    <thead><tr><th>Measured / certified</th><th class="num">value</th></tr></thead>
+    <tbody>
+      <tr><td>mean</td><td class="num">0.036</td></tr>
+      <tr><td>median</td><td class="num">0.032</td></tr>
+      <tr><td>p95</td><td class="num">0.064</td></tr>
+      <tr><td>max</td><td class="num">0.073</td></tr>
+    </tbody>
+  </table></div>
+  <p>The bound is ~28× above the observed error on average, and never below it. Relative error of the pruned output is 0.34%
+  (mean) and 1.2% (p95) of <code>‖o‖</code>. This gap is the price of assuming nothing about the data: Theorem 1 is a worst
+  case over value geometry, and E4 shows how easily that worst case is reached deliberately.</p>
+
+  <h3>E4 — what heuristics do at the same budget</h3>
+  <p>ε = 0.05, 30 queries per cell, 1024 tokens.</p>
+  <div class="scroll"><table>
+    <thead><tr><th>Method</th><th class="num">Retention</th><th class="num">Median error</th><th class="num">Max error</th><th class="num">Violations of ε</th></tr></thead>
+    <tbody>
+      <tr class="best"><td>CASA, benign values</td><td class="num">21.6%</td><td class="num">—</td><td class="num">0.0013</td><td class="num">0/30</td></tr>
+      <tr><td>top-k at matched budget</td><td class="num">21.6%</td><td class="num">6e−8</td><td class="num">1.9e−6</td><td class="num">0/30</td></tr>
+      <tr class="bad"><td>keep 90% of mass</td><td class="num">0.27%</td><td class="num">0.048</td><td class="num">0.108</td><td class="num">14/30</td></tr>
+      <tr class="best"><td>CASA, adversarial values</td><td class="num">41.1%</td><td class="num">—</td><td class="num">0.0005</td><td class="num">0/30</td></tr>
+      <tr class="bad"><td>keep 90% of mass, adversarial</td><td class="num">0.28%</td><td class="num">0.055</td><td class="num">0.194</td><td class="num">17/30</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>1. Probability mass is not an error budget.</b> Keeping 90% of the softmax mass can move the output by 0.19 — nearly 4×
+  the tolerance a practitioner would ask for — because the mass sits in the top 3 tokens while the value information does not.
+  The heuristic reports “90% of the attention retained”, and that number is true and useless.</p>
+  <p><b>2. Certification is invariant to value geometry.</b> Inflating the values of mid-ranked tokens 12× (tokens a mass
+  heuristic cannot even see) leaves CASA’s error at 0.0005 and its guarantee intact, while the mass heuristic’s worst case
+  grows from 0.108 to 0.194. Theorem 1 charges for <code>D_all</code>, so the certificate notices what the heuristic cannot.</p>
+  <p><b>3. Calibration does not substitute for a proof.</b> Choosing the most aggressive top-k budget whose worst error on 10
+  calibration queries stays under ε gives budget 2% here; on 20 held-out queries that costs 0 violations on benign values
+  (worst 0.0074) but <b>1/20 violations and a worst error of 0.097 (2× the target)</b> when values are adversarial. Calibration
+  is a bet on the test distribution. CASA needs no calibration and cannot lose that bet.</p>
+  <div class="callout">
+    <span class="lab">Honest counterpoint</span>
+    <p>On benign data, top-k at the matched budget is <i>more</i> accurate than CASA chooses to be (1.9e−6 vs 0.0013), because
+    CASA stops at the tightest pattern it can certify, not the tightest it can achieve. Anyone who can afford a verification
+    pass should run <code>audit=True</code> and use the measured error; the certificate is what you have when you cannot.</p>
+  </div>
+  <figure>
+    <img src="figures/fig2_heuristic_control.png" alt="Bar chart comparing worst-case L2 error for CASA, matched-budget top-k, and 90%-mass pruning, on benign and adversarial values.">
+    <figcaption>E4 — worst-case L2 error over queries. Only the certified operator stays under the dashed 0.05 target on both
+    value geometries.</figcaption>
+  </figure>
+
+  <h3>E6 — certified context pruning for RAG</h3>
+  <p>256 retrieved chunks of 80–120 tokens (d = 32), one clearly most-relevant chunk:</p>
+  <div class="scroll"><table>
+    <thead><tr><th>ε</th><th class="num">Token savings</th><th class="num">Gold chunk kept</th><th class="num">Drift (median / max)</th><th class="num">Certified bound</th><th class="num">Violations</th></tr></thead>
+    <tbody>
+      <tr><td>0.5</td><td class="num best">96.6%</td><td class="num">100%</td><td class="num">0.071 / 0.171</td><td class="num">0.412</td><td class="num">0</td></tr>
+      <tr><td>0.2</td><td class="num">92.1%</td><td class="num">100%</td><td class="num">0.025 / 0.062</td><td class="num">0.179</td><td class="num">0</td></tr>
+      <tr><td>0.1</td><td class="num">90.6%</td><td class="num">100%</td><td class="num">0.017 / 0.032</td><td class="num">0.093</td><td class="num">0</td></tr>
+      <tr><td>0.05</td><td class="num">91.7%</td><td class="num">100%</td><td class="num">0.009 / 0.016</td><td class="num">0.042</td><td class="num">0</td></tr>
+    </tbody>
+  </table></div>
+  <p>This is the setting where the economics work: the score pass against chunk embeddings is cheap and parallel, while every
+  retained chunk costs real prefill tokens. CASA drops ~90% of the context, never drops the chunk that matters, and attaches a
+  bound on how far the context vector moved. The measured drift is 4–5× below its certificate, and 12/12 runs stay inside it at
+  every tolerance.</p>
+  <div class="callout">
+    <span class="lab">Scope, honestly</span>
+    <p>This measures drift of the softmax-weighted <i>context vector</i>, which is what the theorem governs. It is not a bound on
+    the downstream answer, because a language model is not Lipschitz in its context. Claiming otherwise would be the kind of
+    overreach this package exists to avoid; end-task evaluation is the missing piece.</p>
+  </div>
+
+  <h3>E7 — cost, stated against the claim it does not make</h3>
+  <p>Single head, CPU, NumPy, <code>block_size = 16</code>, ε = 0.05:</p>
+  <div class="scroll"><table>
+    <thead><tr><th class="num">N</th><th class="num">Dense</th><th class="num">Certified, unbound</th><th class="num">Certified, bound</th><th class="num">Retention</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1024</td><td class="num">0.047 ms</td><td class="num">0.60 ms (12.7×)</td><td class="num">2.03 ms (43×)</td><td class="num">18.8%</td></tr>
+      <tr><td class="num">4096</td><td class="num">0.170 ms</td><td class="num">1.88 ms (11.1×)</td><td class="num">11.65 ms (68.6×)</td><td class="num">25.8%</td></tr>
+    </tbody>
+  </table></div>
+  <p>Read this correctly. The asymptotics match (<code>O(Nd)</code>), the constant does not: a NumPy CPU head at 4096 tokens
+  takes 0.17 ms, so Python-level bookkeeping dominates the ratio. Cryptographic binding costs one pass over the tensors and
+  dominates beyond ~8k tokens, which is why a caller who already has a stable identifier for the key block
+  (<code>bind=False</code>) can point the certificate at that identifier instead.</p>
+  <p>CASA is therefore <b>not</b> a FlashAttention competitor and does not claim to be. It buys a guarantee, and it saves the
+  thing that actually costs money at inference time — retained context tokens (E6) — not the score pass.</p>
+</section>
+
+<section id="related">
+  <h2 class="sec"><span class="num">Section 8</span>Relation to existing work, and what is actually new</h2>
+  <p>Sparse and approximate attention is a large field: block-sparse kernels, low-rank and kernel approximations, clustering
+  and eviction policies for the KV cache, and a line of work on attention approximation with provable or high-probability error
+  control. Two things are firmly prior art and are <i>not</i> claimed here:</p>
+  <ul>
+    <li><b>the idea of error-bounded sparse attention</b> — bounds via concentration, and deterministic bounds from norms and
+    mass, exist in the literature under several names;</li>
+    <li><b>pruning by probability mass or top-k scores</b> — standard, and E4 is a fair characterisation of what it costs.</li>
+  </ul>
+  <p>What this work contributes, stated narrowly enough to be defended:</p>
+  <ol>
+    <li><b>A shipped certificate object, not a bound in a paper.</b> The bound, its witness, its digest binding to the inputs,
+    and an independent verifier that re-derives everything and checks <i>minimality</i>, are part of the API surface. To my
+    knowledge no attention library returns a checkable proof object alongside its output, and none ships an offline arithmetic
+    re-check plus a hash-chained ledger. This is the difference between “we bounded the error” and “here is the bound, check
+    it”.</li>
+    <li><b>An exact, minimal, anytime certifier.</b> Given ε, the sparsest certifiable prefix is computed in one vectorized
+    pass and the entire retention/error frontier is available as a by-product, so latency and accuracy budgets trade off
+    without re-running anything.</li>
+    <li><b>One theorem, two applications.</b> The same bound covers attention head sparsification and retrieval-context
+    pruning, which is where token costs actually live; E6 is an unusual way to justify dropping 90% of a RAG context — with a
+    number rather than a vibe.</li>
+    <li><b>A measured negative result</b> (Section 4, E5): score-envelope certification is vacuous at d = 64, for a scaling
+    reason, not an implementation reason. That is useful to anyone who tries this next, and it is usually left out of
+    papers.</li>
+  </ol>
+  <p>The tightness gap in E3 and the cost profile in E7 are the two places where a reviewer should push hardest, and both are
+  reported rather than hidden.</p>
+</section>
+
+<section id="limits">
+  <h2 class="sec"><span class="num">Section 9</span>Limitations and next steps</h2>
+  <ul>
+    <li><b>The bound is worst-case, hence conservative</b> (28× on average in E3). The factor 2 in Theorem 1 is irreducible for
+    this shape of argument; the rest of the gap comes from charging <code>D_all</code> for the dropped set. A per-block
+    value-mean bound would replace <code>τ D_D</code> by the within-block value residual, which shrinks when a block’s values
+    are coherent — the natural next experiment.</li>
+    <li><b>Certificate scope is the context vector.</b> For RAG this bounds drift of <code>g</code>, not the answer. Closing that
+    needs either a Lipschitz-aware readout or empirical end-task evaluation with the certificate as a covariate.</li>
+    <li><b>Single head, single query.</b> Extending to multi-head and batched queries is bookkeeping (per-head certificates, a
+    batched worst-case bound), not new theory.</li>
+    <li><b>No fused kernel.</b> Everything is NumPy/PyTorch-level; the guarantee is real, the speed is not the point. A Triton
+    kernel that emits certificates would make E7’s constant vanish.</li>
+    <li><b>Envelope-only certification is unsolved</b> and is the most interesting open problem here: to prune <i>without</i>
+    scoring, you need an upper bound on a block’s partition mass <code>Z_g</code>, not on its maximum score. Sketches and
+    quantizers give approximate answers; turning one into a rigorous one-sided bound is the research.</li>
+  </ul>
+</section>
+
+<section id="reproduce">
+  <h2 class="sec"><span class="num">Section 10</span>Reproduce</h2>
+  <pre><code>git clone https://github.com/Himanshu90909/Researcher &amp;&amp; cd Researcher
+python -m pytest tests/test_casa.py -q          # 18 tests, ~2 s
+python scripts/run_casa_experiments.py          # 8 studies, ~16 s, CPU only
+python scripts/run_casa_experiments.py --quick  # smoke test, ~3 s</code></pre>
+  <p>No GPU, no API keys, no downloads. NumPy, PyTorch (for the module wrapper) and Matplotlib only.</p>
+  <pre><code>from src.research import casa
+
+out, cert = casa.certified_sparse_attention(q, K, V, block_size=16, eps=0.05)
+assert cert.valid                        # bound &lt;= eps, and not a fallback
+print(cert.retention, cert.error_bound)  # 0.242 0.0411
+casa.verify_certificate(cert, q, K, V)   # independent re-derivation: PASS
+
+res = casa.certified_context_pruning(query_emb, chunks, eps=0.1)
+print(res.token_savings, res.audit["measured_drift"], res.cert.error_bound)</code></pre>
+</section>
+
+</main>
+</div></div>
+
+<footer><div class="wrap">
+  <span>CASA: Certified Adaptive Sparse Attention · Himanshu Suthar · November 2026</span>
+  <span>Code, tests and raw results: <a href="https://github.com/Himanshu90909/Researcher">github.com/Himanshu90909/Researcher</a></span>
+</div></footer>
+
+</body>
+</html>

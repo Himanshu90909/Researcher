@@ -147,7 +147,9 @@ The results, with the honest ones included:
 | Negative result | score-envelope-only certification is vacuous at d=64, for a scaling reason (E5) |
 
 Full write-up with proofs, pseudocode, per-experiment tables and limitations:
-**[docs/CASA.md](docs/CASA.md)**. Reproduce with
+**[docs/CASA.md](docs/CASA.md)**. Published version (responsive, print-friendly, figures
+inlined): **https://casa-paper.vercel.app** — the source of that page is `site/index.html`,
+deployed as a static site with no build step. Reproduce with
 `python scripts/run_casa_experiments.py` (~16 s, CPU only) and
 `python -m pytest tests/test_casa.py -q` (18 tests).
 
